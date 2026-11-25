@@ -9,11 +9,22 @@ notifications:
   email:
       - notification@qos.ch
 
+# logback 1.5.x compiles a Java 21 multi-release layer (maven-compiler java21-compile,
+# release 21), which oraclejdk11 cannot build; upstream releases are built on JDK 21
+# (Build-Jdk-Spec: 21). Provision Temurin 21 and put it ahead of the Travis JDK.
+before_install:
+  - mkdir -p $HOME/jdk21
+  - curl -fsSL "https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jdk/hotspot/normal/eclipse" | tar -xz -C $HOME/jdk21 --strip-components=1
+  - export JAVA_HOME=$HOME/jdk21
+  - export PATH=$JAVA_HOME/bin:$PATH
+  - java -version
+
 install: /bin/true
 
 script:
   - mvn clean
   - mvn install
+  - java .ci/SkipReport.java
 cache:
   directories:
   - $HOME/.m2
